@@ -28,7 +28,7 @@ class SSHBrute:
             sys.stdout.flush()
             if self.args.out:
                 f=open(self.args.out,'a')
-                f.write("Success! %s %s/%s                       \n"%(ip,usr,pwd))
+                f.write("\033[0;32mSuccess! %s %s/%s                       \n\033[0m"%(ip,usr,pwd))
                 f.close()
             self.success.append(ip)
             return True
