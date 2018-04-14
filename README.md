@@ -29,3 +29,11 @@ IP list with single username list and password list
 <pre>
 python main.py -I ip.txt -u root -P password.txt
 </pre>
+
+Output to file with 30 threads and username,password both are oracle
+<pre>
+python main.py -I ip.txt -u oracle -p oracle -t 30 -o r.txt
+</pre>
+
+## Else
+If you occured error message,don't be panic,just add a except by yourself
