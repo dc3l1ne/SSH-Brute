@@ -38,7 +38,7 @@ class SSHBrute:
                 sys.stdout.write("Faild %s %s/%s                       \n" % (ip, usr, pwd))
                 sys.stdout.flush()
             return False
-        except paramiko.ssh_exception.NoValidConnectionsError:
+        except paramiko.SSHException: #this port maybe not ssh
             ssh.close()
             self.error.append(ip)
             return False
