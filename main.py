@@ -3,6 +3,7 @@ import paramiko
 import time
 import traceback
 import sys
+from socket import timeout
 from paramiko import SSHClient
 from paramiko import AutoAddPolicy
 from optparse import OptionParser
@@ -24,11 +25,11 @@ class SSHBrute:
                 sys.stdout.flush()
             ssh.connect(ip, port=22, username=usr, password=pwd, timeout=10, allow_agent=False, look_for_keys=False)
             ssh.close()
-            sys.stdout.write("Success! %s %s/%s                       \n"%(ip,usr,pwd))
+            sys.stdout.write("\033[0;32mSuccess! %s %s/%s                       \n\033[0m"%(ip,usr,pwd))
             sys.stdout.flush()
             if self.args.out:
                 f=open(self.args.out,'a')
-                f.write("\033[0;32mSuccess! %s %s/%s                       \n\033[0m"%(ip,usr,pwd))
+                f.write("Success! %s %s/%s                       \n"%(ip,usr,pwd))
                 f.close()
             self.success.append(ip)
             return True
@@ -38,8 +39,11 @@ class SSHBrute:
                 sys.stdout.write("Faild %s %s/%s                       \n" % (ip, usr, pwd))
                 sys.stdout.flush()
             return False
-        except paramiko.SSHException: #this port maybe not ssh
+        except paramiko.SSHException:
             ssh.close()
+            self.error.append(ip)
+            return False
+        except timeout:
             self.error.append(ip)
             return False
         except:
