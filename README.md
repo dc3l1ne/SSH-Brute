@@ -1,4 +1,6 @@
-A very simple script to brute force ssh
+## A very simple script to brute force ssh
+
+This script will use the first username and password combination to test all IPs,the the second one.
 
 <pre>
 Usage: main.py [options]
